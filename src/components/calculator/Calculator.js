@@ -4,7 +4,7 @@ import Button from './components/Button/Button';
 
 const Calculator = () => {
 
-  const calculatorButtons = [
+  const calculatorButtonTemplate = [
     [
       {
         label: 'AC',
@@ -119,7 +119,7 @@ const Calculator = () => {
     operator: null,
     operated: false,
     askDecimal: false,
-    highlighOperation: null,
+    highlightOperation: null,
   })
 
   const resetValues = () => {
@@ -129,7 +129,7 @@ const Calculator = () => {
       secondValue: 0,
       operator: null,
       askDecimal: false,
-      highlighOperation: null,
+      highlightOperation: null,
     });
   }
 
@@ -166,7 +166,7 @@ const Calculator = () => {
       displayValue: value.toString(10),
       operated,
       askDecimal: false,
-      highlighOperation: null,
+      highlightOperation: null,
     })
   }
 
@@ -201,7 +201,7 @@ const Calculator = () => {
       secondValue: 0,
       operator: operator,
       operated: operator === null,
-      highlighOperation: operator,
+      highlightOperation: operator,
     });
   }
 
@@ -210,7 +210,7 @@ const Calculator = () => {
       ...calculator,
       operator: operand,
       operated: false,
-      highlighOperation: operand
+      highlightOperation: operand
     });
     updateOperation(operand);
   }
@@ -246,14 +246,14 @@ const Calculator = () => {
       <header>{calculator.displayValue}</header>
       <div className="keyboard-container">
         {
-          calculatorButtons.flat().map((button, idx) => (
+          calculatorButtonTemplate.flat().map((button, idx) => (
             button.type === 'special'
               ? <Button key={idx} value={button.label} className={button.class} onClick={() => checkOperation(button.label)} />
               : button.type === 'operator'
                 ? <Button
                   key={idx}
                   value={button.label}
-                  className={calculator.highlighOperation === button.label ? "selected-operator" : "operator"}
+                  className={calculator.highlightOperation === button.label ? "selected-operator" : "operator"}
                   onClick={() => checkOperation(button.label)} />
                 : button.type === 'number'
                   ? <Button key={idx} value={button.label} onClick={() => numberClick(button.label)} />
