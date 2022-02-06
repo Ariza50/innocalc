@@ -14,6 +14,11 @@ button:hover {
     cursor: pointer;
 }
 
+.selected-operator {
+    background: white;
+    color: coral;
+}
+
 .operator {
     background: coral;
 }

@@ -3,27 +3,142 @@ import {useState} from 'react';
 import Button from './components/Button/Button';
 
 const Calculator = () => {
+
+  const calculatorButtons = [
+    [
+      {
+        label: 'AC',
+        class: 'special',
+        type: 'special'
+      },
+      {
+        label: '+/-',
+        class: 'special',
+        type: 'special'
+      },
+      {
+        label: '%',
+        class: 'special',
+        type: 'special'
+      },
+      {
+        label: '÷',
+        class: '',
+        type: 'operator'
+      },
+    ],
+    [
+      {
+        label: '7',
+        class: '',
+        type: 'number'
+      },
+      {
+        label: '8',
+        class: '',
+        type: 'number'
+      },
+      {
+        label: '9',
+        class: '',
+        type: 'number'
+      },
+      {
+        label: '×',
+        class: '',
+        type: 'operator'
+      },
+    ],
+    [
+      {
+        label: '4',
+        class: '',
+        type: 'number'
+      },
+      {
+        label: '5',
+        class: '',
+        type: 'number'
+      },
+      {
+        label:'6',
+        class: '',
+        type: 'number'
+      },
+      {
+        label:'-',
+        class: '',
+        type: 'operator'
+      },
+    ],
+    [
+      {
+        label:'1',
+        class: '',
+        type: 'number'
+      },
+      {
+        label: '2',
+        class: '',
+        type: 'number'
+      },
+      {
+        label:'3',
+        class: '',
+        type: 'number'
+      },
+      {
+        label: '+',
+        class: '',
+        type: 'operator'
+      },
+    ],
+    [
+      {
+        label: '0',
+        class: '',
+        type: 'number'
+      },
+      {
+        label: '.',
+        class: '',
+        type: 'decimal'
+      },
+      {
+        label:'=',
+        class: 'operator extra',
+        type: '='
+      },
+    ],
+  ];
+
   let [calculator, setCalculator] = useState({
-    displayValue: 0,
+    displayValue: '0',
     firstValue: 0,
     secondValue: 0,
     operator: null,
     operated: false,
+    askDecimal: false,
+    highlighOperation: null,
   })
 
   const resetValues = () => {
     setCalculator({
-      displayValue: 0,
+      displayValue: '0',
       firstValue: 0,
       secondValue: 0,
       operator: null,
+      askDecimal: false,
+      highlighOperation: null,
     });
   }
 
   const invertSign = () => {
+    const key = calculator.operator ? 'secondValue' : 'firstValue';
     setCalculator({
       ...calculator,
-      displayValue: calculator.displayValue * -1
+      displayValue: calculator.displayValue * -1,
+      [key]: calculator[key] * -1
     });
   }
 
@@ -37,7 +152,11 @@ const Calculator = () => {
       operated = false;
     } else {
       key = calculator.operator ? 'secondValue' : 'firstValue';
-      value = parseFloat(String(calculator[key]) + newNumber);
+
+      value = calculator.askDecimal
+        ? parseFloat(String(calculator[key] + '.' + newNumber.toString()))
+        : parseFloat(String(calculator[key] + newNumber.toString()));
+
       operated = calculator.operated;
     }
 
@@ -45,11 +164,21 @@ const Calculator = () => {
       ...calculator,
       [key]: value,
       displayValue: value.toString(10),
-      operated
+      operated,
+      askDecimal: false,
+      highlighOperation: null,
     })
   }
 
-  const updateOperation = () => {
+  const addDecimal = () => {
+    setCalculator({
+      ...calculator,
+      displayValue: calculator.displayValue.includes('.') ? calculator.displayValue : calculator.displayValue + '.',
+      askDecimal: !calculator.displayValue.includes('.')
+    });
+  }
+
+  const updateOperation = (operator) => {
     if (!calculator.operator) {
       return;
     }
@@ -61,28 +190,42 @@ const Calculator = () => {
       : calculator.operator === '×'
       ? calculator.firstValue * calculator.secondValue
       : calculator.operator === '÷'
+      ? calculator.secondValue !== 0
       ? calculator.firstValue / calculator.secondValue
+      : 'Error'
       : 0
 
     setCalculator({
       displayValue: String(result),
-      firstValue: result,
+      firstValue: result === 'Error' ? 0 : result,
       secondValue: 0,
-      operator: null,
-      operated: true,
+      operator: operator,
+      operated: operator === null,
+      highlighOperation: operator,
     });
   }
 
   const addOperand = (operand) => {
-    console.log('addOperand ', operand);
     setCalculator({
       ...calculator,
-      operator: operand
+      operator: operand,
+      operated: false,
+      highlighOperation: operand
     });
-    // updateOperation();
+    updateOperation(operand);
   }
 
-  const buttonValues = {
+  const percentOperation = () => {
+    const key = calculator.operator ? 'secondValue' : 'firstValue';
+
+    setCalculator({
+     ...calculator,
+     [key]: calculator[key] / 100,
+     displayValue: String(calculator[key] /100),
+    });
+  }
+
+  const buttonOperations = {
     AC: resetValues,
     '+/-': invertSign,
     '÷': addOperand,
@@ -90,54 +233,35 @@ const Calculator = () => {
     '-': addOperand,
     '+': addOperand,
     '=': updateOperation,
+    '%': percentOperation,
+    ',': addDecimal,
   }
 
-  const checkButton = (value) => {
-    buttonValues[value]();
+  const checkOperation = (value) => {
+    buttonOperations[value](value);
   }
-  console.log('calculator ', calculator);
+
   return (
     <div className="calculator-container">
       <header>{calculator.displayValue}</header>
-      {/*<input type="text" value={0} />*/}
       <div className="keyboard-container">
-        <Button value="AC" className="special" onClick={() => checkButton('AC')} />
-        {/*<button className="special">AC</button>*/}
-        <Button value="+/-" className="special" onClick={() => checkButton('+/-')} />
-        {/*<button className="special">+/-</button>*/}
-        <Button value="%" className="special" onClick={() => checkButton('%')} />
-        {/*<button className="special">%</button>*/}
-        <Button value="÷" className="operator" onClick={() => addOperand('÷')} />
-        {/*<button className="operator">÷</button>*/}
-        <Button value="7" onClick={() => numberClick('7')} />
-        {/*<button>7</button>*/}
-        <Button value="8" onClick={() => numberClick('8')} />
-        {/*<button>8</button>*/}
-        <Button value="9" onClick={() => numberClick('9')} />
-        {/*<button>9</button>*/}
-        <Button value="×" className="operator" onClick={() => addOperand('×')} />
-        {/*<button className="operator">×</button>*/}
-        <Button value="4" onClick={() => numberClick('4')} />
-        {/*<button>4</button>*/}
-        <Button value="5" onClick={() => numberClick('5')} />
-        {/*<button>5</button>*/}
-        <Button value="6" onClick={() => numberClick('6')} />
-        {/*<button>6</button>*/}
-        <Button value="-" className="operator" onClick={() => addOperand('-')} />
-        {/*<button className="operator">-</button>*/}
-        <Button value="1" onClick={() => numberClick('1')} />
-        {/*<button>1</button>*/}
-        <Button value="2" onClick={() => numberClick('2')} />
-        {/*<button>2</button>*/}
-        <Button value="3" onClick={() => numberClick('3')} />
-        {/*<button>3</button>*/}
-        <Button value="+" className="operator" onClick={() => addOperand('+')} />
-        {/*<button className="operator">+</button>*/}
-        <Button value="0" onClick={() => numberClick('0')} />
-        {/*<button>0</button>*/}
-        <Button value="," onClick={() => checkButton(',')} />
-        {/*<button>,</button>*/}
-        <Button value="=" className="operator extra" onClick={() => updateOperation()} />
+        {
+          calculatorButtons.flat().map((button, idx) => (
+            button.type === 'special'
+              ? <Button key={idx} value={button.label} className={button.class} onClick={() => checkOperation(button.label)} />
+              : button.type === 'operator'
+                ? <Button
+                  key={idx}
+                  value={button.label}
+                  className={calculator.highlighOperation === button.label ? "selected-operator" : "operator"}
+                  onClick={() => checkOperation(button.label)} />
+                : button.type === 'number'
+                  ? <Button key={idx} value={button.label} onClick={() => numberClick(button.label)} />
+                  : button.type === 'decimal'
+                    ? <Button key={idx} value="." onClick={() => checkOperation(',')} />
+                    : <Button key={idx} value="=" className={button.class} onClick={() => updateOperation(null)} />
+          ))
+        }
       </div>
     </div>
   );
